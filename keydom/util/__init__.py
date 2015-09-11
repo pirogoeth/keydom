@@ -60,6 +60,7 @@ def parse_uri(uri):
 
     return {
         "protocol": proto,
+        "resource": uri,
         "host": host,
         "port": port,
         "username": _user,

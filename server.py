@@ -3,7 +3,7 @@
 from rest_api import routing, manager, util
 from rest_api.manager import RESTAPIManager
 from malibu.util import log
-
+from keydom import models
 
 if __name__ == "__main__":
 
@@ -12,6 +12,7 @@ if __name__ == "__main__":
     log.LoggingDriver.from_config(manager.config.get_section("logging"),
         name = "keydom")
     log = log.LoggingDriver.find_logger(name = "keydom.__main__")
+    models.init_database_from_config(manager.config.get_section("database"))
     manager.load_bottle()
     routing.load_routing_modules(manager, package = "keydom.routes")
     manager.load_dsn()
