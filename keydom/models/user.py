@@ -15,8 +15,8 @@ class User(BaseModel):
 
 class UserRelationship(BaseModel):
 
-    from_user = ForeignKeyField(User, related_name = 'following')
-    to_user = ForeignKeyField(User, related_name = 'followers')
+    from_user = peewee.ForeignKeyField(User, related_name = 'following')
+    to_user = peewee.ForeignKeyField(User, related_name = 'followers')
 
     class Meta:
         indexes = (
