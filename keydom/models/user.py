@@ -6,7 +6,7 @@ class User(BaseModel):
 
     username = peewee.CharField(unique = True)
     password = peewee.CharField()
-    email = peewee.CharField()
+    email = peewee.CharField(unique = True)
     join_date = peewee.DateTimeField(default = datetime.datetime.now)
 
     class Meta:
