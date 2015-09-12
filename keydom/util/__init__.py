@@ -1,4 +1,13 @@
-import urlparse
+import random, urlparse
+
+
+def generate_random_token(length = 64):
+    """ Generates a random token of specified length.
+    """
+
+    lrange = 16 ** length
+    hexval = "%0{}x".format(length)
+    return hexval % (random.randrange(lrange))
 
 
 def parse_uri(uri):
