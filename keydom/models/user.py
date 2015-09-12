@@ -103,6 +103,7 @@ class Token(BaseModel):
 
         @job.onfail
         def __expiry_fail(job):
+            manager.RESTAPIManager.get_instance().dsn.client.captureException()
             _log = log.LoggingDriver.find_logger()
             _log.warning("Token expiry failed! user={}, created={}, fired={}"
                 .format(
