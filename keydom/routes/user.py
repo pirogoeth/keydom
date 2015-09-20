@@ -7,7 +7,7 @@ from rest_api.routing.base import api_route
 from validate_email import validate_email
 
 from keydom import models
-from keydom.models.user import User
+from keydom.models.user import Token, User
 
 
 class UserAPIRouter(routing.base.APIRouter):
@@ -58,13 +58,11 @@ class UserAPIRouter(routing.base.APIRouter):
         if res.count() > 0:
             resp = routing.base.generate_error_response(code = 409)
             resp["message"] = "Username taken."
-            response.status = 409  # Set the HTTP response.
             return json.dumps(resp) + "\n"
 
         if not validate_email(email):
             resp = routing.base.generate_error_response(code = 409)
             resp["message"] = "Invalid email address."
-            response.status = 409
             return json.dumps(resp) + "\n"
 
         password = hashlib.sha512(password).hexdigest()
@@ -76,7 +74,7 @@ class UserAPIRouter(routing.base.APIRouter):
         new_user.save()
 
         resp = routing.base.generate_bare_response()
-        resp["info"] = {
+        resp["account"] = {
             "registered": True,
             "username": username,
             "email": email
@@ -101,9 +99,8 @@ class UserAPIRouter(routing.base.APIRouter):
 
         try: res = User.get(User.username == username, User.password == password)
         except Exception as e:
-            resp = routing.base.generate_error_response(code = 409, exception = e)
+            resp = routing.base.generate_error_response(code = 409)
             resp["message"] = "Invalid username or password."
-            response.status = 409
             return json.dumps(resp) + "\n"
 
         token = res.create_token()
@@ -113,6 +110,41 @@ class UserAPIRouter(routing.base.APIRouter):
         resp["auth"] = {
             "token": token.token,
             "expires": config.get_int("expire", 14400),
+        }
+
+        return json.dumps(resp) + "\n"
+
+    @api_route(path = "/user/session", actions = ["GET"])
+    def user_session():
+        """ GET /user/session
+
+            Reads the X-Keydom-Session header and checks if the token is valid.
+            If it is, the API returns the username that the token is associated with.
+        """
+
+        auth_token = request.headers.get("X-Keydom-Session")
+
+        if not auth_token:
+            resp = routing.base.generate_error_response(code = 409)
+            resp["message"] = "Invalid authentication token."
+            return json.dumps(resp) + "\n"
+
+        try: token = Token.get(Token.token == auth_token)
+        except Exception as e:
+            resp = routing.base.generate_error_response(code = 409)
+            resp["message"] = "Invalid authentication token."
+            return json.dumps(resp) + "\n"
+
+        user = token.for_user
+
+        # XXX - check expiration time?
+
+        resp = routing.base.generate_bare_response()
+        resp["session"] = {
+            "username": user.username,
+        }
+        resp["token"] = {
+            "expires_at": str(token.expire_time),
         }
 
         return json.dumps(resp) + "\n"
