@@ -92,6 +92,14 @@ class Token(BaseModel):
         """ Expires a token immediately.
         """
 
+        # Kill the expiry job.
+        sch = scheduler.Scheduler(state = "default")
+        job_name = "__delete_token_{}".format(self.timestamp)
+        sch.remove_job(job_name)
+
+        # Set the expiry time to now.
+        self.timestamp = datetime.datetime.now()
+
     def schedule_expiry(self):
         """ Schedules token expiration in the scheduler.
         """

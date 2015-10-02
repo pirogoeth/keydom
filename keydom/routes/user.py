@@ -148,6 +148,7 @@ class UserAPIRouter(routing.base.APIRouter):
         }
         resp["token"] = {
             "expires_at": str(token.expire_time),
+            "created_at": str(token.timestamp),
         }
 
         return json.dumps(resp) + "\n"
