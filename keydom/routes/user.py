@@ -118,6 +118,9 @@ class UserAPIRouter(routing.base.APIRouter):
     def user_session():
         """ GET /user/session
 
+            Headers:
+              X-Keydom-Session => current session token
+
             Reads the X-Keydom-Session header and checks if the token is valid.
             If it is, the API returns the username that the token is associated with.
         """
@@ -149,5 +152,45 @@ class UserAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
+    @api_route(path = "/user/tokens", actions = ['GET'])
+    def user_tokens():
+        """ GET /user/tokens
+
+            Headers:
+              X-Keydom-Session => current session token
+
+            Returns the list of tokens that are active for the user associated with the current token.
+        """
+
+        auth_token = request.headers.get("X-Keydom-Session")
+
+        if not auth_token:
+            resp = routing.base.generate_error_response(code = 409)
+            resp["message"] = "Invalid authentication token."
+            return json.dumps(resp) + "\n"
+
+        try: token = Token.get(Token.token == auth_token)
+        except Exception as e:
+            resp = routing.base.generate_error_response(code = 409)
+            resp["message"] = "Invalid authentication token."
+            return json.dumps(resp) + "\n"
+
+        user = token.for_user
+        tokens = user.tokens()
+
+        resp = routing.base.generate_bare_response()
+        resp["session"] = {
+            "username": user.username,
+        }
+        resp["tokens"] = []
+
+        for user_token in tokens:
+            resp["tokens"].append({
+                "token": str(token.token),
+                "expires_at": str(token.expire_time),
+                "created_at": str(token.timestamp),
+            })
+
+        return json.dumps(resp) + "\n"
 
 register_route_providers = [UserAPIRouter]

@@ -88,6 +88,10 @@ class Token(BaseModel):
             (('for_user',), False),
         )
 
+    def expire(self):
+        """ Expires a token immediately.
+        """
+
     def schedule_expiry(self):
         """ Schedules token expiration in the scheduler.
         """

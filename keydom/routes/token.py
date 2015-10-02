@@ -33,7 +33,6 @@ class TokenAPIRouter(routing.base.APIRouter):
         except:
             resp = routing.base.generate_error_response(code = 409)
             resp["message"] = "Invalid token."
-            response.status = 409
             return json.dumps(resp) + "\n"
 
         resp = routing.base.generate_bare_response()
