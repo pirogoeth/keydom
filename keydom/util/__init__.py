@@ -10,6 +10,23 @@ def generate_random_token(length = 64):
     return hexval % (random.randrange(lrange))
 
 
+def token_by_header_data(auth_token):
+    """ Accepts the user provided auth token and returns a
+        token object if the token is valid, otherwise, None.
+    """
+
+    from keydom.models.user import Token
+
+    if not auth_token:
+        return None
+
+    try: token = Token.get(Token.token == auth_token)
+    except Exception as e:
+        return None
+
+    return token
+
+
 def parse_uri(uri):
     """ This implies that we are passed a uri that looks something like:
           proto://username:password@hostname:port/database

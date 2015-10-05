@@ -2,7 +2,7 @@ bottle==0.12.8
 eventlet==0.17.4
 gevent==1.0.2
 greenlet==0.4.9
-malibu==0.1.3.post12
+malibu>=0.1.3.post12
 raven==5.6.0
 peewee==2.6.3
 psycopg2==2.6.1

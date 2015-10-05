@@ -140,7 +140,10 @@ class UserAPIRouter(routing.base.APIRouter):
 
         user = token.for_user
 
-        # XXX - check expiration time?
+        if token.has_expired:
+            resp = routing.base.generate_error_response(code = 403)
+            resp["message"] = "Authentication token has expired. Request another."
+            return json.dumps(resp) + "\n"
 
         resp = routing.base.generate_bare_response()
         resp["session"] = {
@@ -150,6 +153,49 @@ class UserAPIRouter(routing.base.APIRouter):
             "expires_at": str(token.expire_time),
             "created_at": str(token.timestamp),
         }
+
+        return json.dumps(resp) + "\n"
+
+    @api_route(path = "/user/<username>", actions = ['GET'])
+    def user_info(username):
+        """ GET /user/:username
+
+            Headers:
+              X-Keydom-Session => current session token
+
+            Returns information about a user. Some information will
+            only be returned if a valid session token is provided.
+        """
+
+        auth_token = request.headers.get("X-Keydom-Session")
+
+        if auth_token:
+            try: token = Token.get(Token.token == auth_token)
+            except Exception as e:
+                resp = routing.base.generate_error_response(code = 409)
+                resp["message"] = "Invalid authentication token."
+                return json.dumps(resp) + "\n"
+
+        try: user = User.get(User.username == username)
+        except Exception as e:
+            resp = routing.base.generate_error_response(code = 404)
+            resp["message"] = "Invalid username."
+            return json.dumps(resp) + "\n"
+
+        if token.has_expired:
+            token = None
+
+        resp = routing.base.generate_bare_response()
+        resp["user"] = {
+            "username": username,
+            "join_date": user.timestamp,
+        }
+
+        if token:
+            # Information for registered users is inserted here.
+            resp["user"].update({
+                "email": user.email,
+            })
 
         return json.dumps(resp) + "\n"
 
@@ -176,6 +222,11 @@ class UserAPIRouter(routing.base.APIRouter):
             resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
+        if token.has_expired:
+            resp = routing.base.generate_error_response(code = 403)
+            resp["message"] = "Authentication token has expired. Request another."
+            return json.dumps(resp) + "\n"
+
         user = token.for_user
         tokens = user.tokens()
 
@@ -193,5 +244,6 @@ class UserAPIRouter(routing.base.APIRouter):
             })
 
         return json.dumps(resp) + "\n"
+
 
 register_route_providers = [UserAPIRouter]

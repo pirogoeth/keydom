@@ -88,23 +88,46 @@ class Token(BaseModel):
             (('for_user',), False),
         )
 
+    @property
+    def has_expired(self):
+        """ Checks to see if the token has expired or not.
+        """
+
+        config = manager.RESTAPIManager.get_instance().config.get_section("auth-tokens")
+
+        if not self.expire_time:
+            self.expire_time = self.timestamp + datetime.timedelta(
+                seconds = config.get_int("expire", 14400))
+
+        return self.expire_time <= datetime.datetime.now()
+
     def expire(self):
         """ Expires a token immediately.
         """
 
-        # Kill the expiry job.
-        sch = scheduler.Scheduler(state = "default")
-        job_name = "__delete_token_{}".format(self.timestamp)
-        sch.remove_job(job_name)
+        _log = log.LoggingDriver.find_logger()
 
-        # Set the expiry time to now.
-        self.timestamp = datetime.datetime.now()
+        # Kill the expiry job.
+        try:
+            sch = scheduler.Scheduler(state = "default")
+            job_name = "__delete_token_{}".format(self.timestamp)
+            sch.remove_job(job_name)
+        except Exception as e:
+            _log.warning("An error was encountered while trying to kill "
+                         "expiry job: %s" % (str(e)))
+            manager.RESTAPIManager.get_instance().dsn.client.captureException()
+
+        # Set the expire time to now.
+        self.expire_time = datetime.datetime.now()
 
     def schedule_expiry(self):
         """ Schedules token expiration in the scheduler.
         """
 
         config = manager.RESTAPIManager.get_instance().config.get_section("auth-tokens")
+
+        self.expire_time = self.timestamp + datetime.timedelta(
+            seconds = config.get_int("expire", 14400))
 
         sch = scheduler.Scheduler(state = "default")
         job = sch.create_job(
