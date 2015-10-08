@@ -60,7 +60,6 @@ class SystemAPIRouter(routing.base.APIRouter):
         resp["jobs"] = {}
 
         for job in jobs:
-            print job
             resp["jobs"].update({
                 job.get_name(): {
                     "function_handle": str(job._function),

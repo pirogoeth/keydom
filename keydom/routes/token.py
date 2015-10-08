@@ -109,7 +109,8 @@ class TokenAPIRouter(routing.base.APIRouter):
         resp["tokens"] = {}
 
         for user_token in tokens:
-            user_token.expire()
+            try: user_token.expire()
+            except: pass
             resp["tokens"].update({
                 user_token.token: {
                     "status": "revoked"

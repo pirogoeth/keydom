@@ -21,9 +21,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         self.__log = log.LoggingDriver.find_logger()
 
-    @api_route(path = "/user/list", actions = ["GET"])
+    @api_route(path = "/users", actions = ["GET"])
     def user_list():
-        """ GET /user/list
+        """ GET /users
 
             Returns a JSON list of all the users registered
             in the database.
@@ -38,9 +38,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         yield json.dumps(resp) + "\n"
 
-    @api_route(path = "/user/register", actions = ["POST"])
+    @api_route(path = "/register", actions = ["POST"])
     def user_register():
-        """ POST /user/register
+        """ POST /register
 
             Attempts to register a username for use. Returns
             `status: 200` if success, or these values on failure:
@@ -82,9 +82,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/user/auth", actions = ["POST"])
+    @api_route(path = "/auth", actions = ["POST"])
     def user_auth():
-        """ POST /user/auth
+        """ POST /auth
 
             Takes a user's username and password and attempts to auth
             against the database. If there is a match, it will return `status: 200`
@@ -114,9 +114,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/user/session", actions = ["GET"])
+    @api_route(path = "/session", actions = ["GET"])
     def user_session():
-        """ GET /user/session
+        """ GET /session
 
             Headers:
               X-Keydom-Session => current session token
@@ -172,9 +172,7 @@ class UserAPIRouter(routing.base.APIRouter):
         if auth_token:
             try: token = Token.get(Token.token == auth_token)
             except Exception as e:
-                resp = routing.base.generate_error_response(code = 409)
-                resp["message"] = "Invalid authentication token."
-                return json.dumps(resp) + "\n"
+                token = None
 
         try: user = User.get(User.username == username)
         except Exception as e:
@@ -187,8 +185,8 @@ class UserAPIRouter(routing.base.APIRouter):
 
         resp = routing.base.generate_bare_response()
         resp["user"] = {
-            "username": username,
-            "join_date": user.timestamp,
+            "username": user.username,
+            "join_date": str(user.join_date),
         }
 
         if token:
@@ -199,9 +197,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/user/tokens", actions = ['GET'])
+    @api_route(path = "/tokens", actions = ['GET'])
     def user_tokens():
-        """ GET /user/tokens
+        """ GET /tokens
 
             Headers:
               X-Keydom-Session => current session token
