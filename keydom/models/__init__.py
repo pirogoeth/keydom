@@ -1,14 +1,19 @@
 import glob, importlib, inspect, os
 import peewee, playhouse
+from playhouse.migrate import MySQLMigrator, PostgresqlMigrator, SqliteMigrator
 from importlib import import_module
 from keydom.util import parse_uri
 from malibu.util import log
 
 modules = glob.glob(os.path.dirname(__file__) + "/*.py")
-__all__ = [os.path.basename(f)[:-3] for f in modules if not os.path.basename(f).startswith('_') and not f.endswith('__init__.py') and os.path.isfile(f)]
+__all__ = [os.path.basename(f)[:-3] for f in modules
+           if not os.path.basename(f).startswith('_') and
+              not f.endswith('__init__.py') and os.path.isfile(f)]
 
 
 database_proxy = peewee.Proxy()
+database_migrator = None
+
 
 class FKSqliteDatabase(peewee.SqliteDatabase):
     """ A simple wrapper around peewee's SqliteDatabase that
@@ -38,6 +43,7 @@ def init_database_from_config(db_config):
     """
 
     LOG = log.LoggingDriver.find_logger()
+    global database_migrator
 
     if db_config is None:
         raise ValueError("Config section 'database' does not exist!")
@@ -50,6 +56,7 @@ def init_database_from_config(db_config):
 
     if db_uri["protocol"] == "sqlite":
         database = FKSqliteDatabase(db_uri["resource"])
+        database_migrator = SqliteMigrator(database)
     elif db_uri["protocol"] == "postgres":
         database = playhouse.postgres_ext.PostgresqlExtDatabase(
             db_uri["database"],
@@ -57,6 +64,7 @@ def init_database_from_config(db_config):
             password = db_uri["password"],
             host = db_uri["host"],
             port = db_uri["port"])
+        database_migrator = PostgresqlMigrator(database)
     elif db_uri["protocol"] == "mysql":
         database = peewee.MySQLDatabase(
             db_uri["database"],
@@ -64,6 +72,7 @@ def init_database_from_config(db_config):
             password = db_uri["password"],
             host = db_uri["host"],
             port = db_uri["port"])
+        database_migrator = MySQLMigrator(database)
     else:
         raise ValueError("Unknown DB protocol: %s" % (db_uri["protocol"]))
 
@@ -87,3 +96,4 @@ def init_database_from_config(db_config):
 
     LOG.debug("Ensuring tables are created (safe=True)")
     database.create_tables(tables, safe = True)
+

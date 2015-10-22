@@ -5,7 +5,7 @@ def ssh_pubkey_fingerprint(key):
     """ Generates a key fingerprint for an SSH public key.
     """
 
-    key = base64.b64decode(line.strip().split()[1].encode('ascii'))
+    key = base64.b64decode(key.strip().split()[1].encode('ascii'))
     md5_fp = hashlib.md5(key).hexdigest()
 
     return ':'.join(a + b for a, b in zip(md5_fp[::2], md5_fp[1::2]))
