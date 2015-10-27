@@ -29,9 +29,16 @@
 			"type": "text",
 			"name": "keydom_ssh_key",
 			"enabled": true
+		},
+		{
+			"key": "keydom_endpoint",
+			"value": "66.76.118.158:9468",
+			"type": "text",
+			"name": "keydom_endpoint",
+			"enabled": true
 		}
 	],
-	"timestamp": 1445962853424,
+	"timestamp": 1445972129294,
 	"synced": false,
 	"syncedFilename": ""
 }
