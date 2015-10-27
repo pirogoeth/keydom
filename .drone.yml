@@ -12,8 +12,9 @@ script:
   - curl -sL https://deb.nodesource.com/setup_0.12 | bash -
   - apt-get install -y nodejs
   - npm install -g newman
-  - ./server.py --config=tests/test.ini & disown
+  - ./server.py --config=tests/test.ini &
   - newman -x 1 -c tests/postman/keydom-tests.json -e tests/postman/env-test.json
+  - kill -9 %1
 notify:
   slack:
     webhook_url: $$SLACK_URL
