@@ -1,6 +1,6 @@
 {
-	"id": "27028f13-b6e5-5bc2-abad-2b9460d358a7",
-	"name": "dev",
+	"id": "852db38b-4c5d-6f5b-d01c-32aa7a4da906",
+	"name": "test",
 	"values": [
 		{
 			"key": "keydom_username",
@@ -29,9 +29,16 @@
 			"type": "text",
 			"name": "keydom_ssh_key",
 			"enabled": true
+		},
+		{
+			"key": "keydom_endpoint",
+			"value": "127.0.0.1:9468",
+			"type": "text",
+			"name": "keydom_endpoint",
+			"enabled": true
 		}
 	],
-	"timestamp": 1445962853424,
+	"timestamp": 1445962844321,
 	"synced": false,
 	"syncedFilename": ""
 }

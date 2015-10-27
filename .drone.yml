@@ -1,0 +1,23 @@
+image: python:2.7-wheezy
+script:
+  - virtualenv .
+  - source bin/activate
+  - pip install -r requirements.txt
+  - curl -sL https://deb.nodesource.com/setup_0.12 | bash -
+  - apt-get install -y nodejs
+  - npm install -g newman
+  - ./server.py --config=tests/test.ini & disown
+  - newman -x 1 -c tests/postman/keydom-tests.json -e tests/postman/env-test.json
+notify:
+  slack:
+    webhook_url: $$SLACK_URL
+    channel: $$SLACK_CHANNEL
+    on_started: true
+    on_success: true
+    on_failure: true
+  webhook:
+    urls:
+      - $$GITTER_URL
+    on_started: true
+    on_success: true
+    on_failure: true
