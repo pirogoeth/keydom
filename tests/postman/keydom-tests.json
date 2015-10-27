@@ -1,0 +1,225 @@
+{
+	"id": "f88abb35-3326-91d5-f598-3f6e98d5faf9",
+	"name": "keydom",
+	"description": "",
+	"order": [
+		"f08f878e-5532-6cc7-3ef2-55e9b16faf54",
+		"6d3afebb-b466-ade8-5b51-92a68073cbc2",
+		"72aedd39-c40a-3528-fd1f-4bf1cd31a5f2",
+		"6a3bf740-dab9-d583-cc76-59718cceed1f",
+		"cfcc5062-8f47-109f-c5bd-a9c8da5683a9",
+		"336d00da-07d2-c878-f5b6-8f5a7845b316",
+		"ec95aa1c-011e-ddb1-a85c-bc858d7786ff"
+	],
+	"folders": [],
+	"timestamp": 1445616758085,
+	"owner": "191973",
+	"remoteLink": "",
+	"public": false,
+	"requests": [
+		{
+			"id": "336d00da-07d2-c878-f5b6-8f5a7845b316",
+			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"url": "http://maio.me:9468/key/fingerprint?user=self&short_name={{keydom_key_name}}",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "GET",
+			"data": [],
+			"dataMode": "params",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"key status success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"key data contains fingerprint\"] = \"fingerprints\" in data;\n    tests[\"key fingerprints has element\"] = 0 in data.fingerprints;\n    key_data = data.fingerprints[0];\n    tests[\"key resp contains key data\"] = \"fingerprint\" in key_data;\n    tests[\"key data owned by self\"] = key_data.owner === environment.keydom_username;\n    tests[\"key data name matches local\"] = key_data.short_name === environment.keydom_key_name;\n\n    postman.setEnvironmentVariable(\"keydom_key_fingerprint\", key_data.fingerprint);\n} else {\n    postman.clearEnvironmentVariable(\"keydom_key_fingerprint\");\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1445922608738,
+			"name": "http://maio.me:9468/key/fingerprint",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
+		},
+		{
+			"id": "6a3bf740-dab9-d583-cc76-59718cceed1f",
+			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"url": "http://maio.me:9468/session",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "GET",
+			"data": [
+				{
+					"key": "visibility",
+					"value": "self",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "short_name",
+					"value": "{{keydom_key_name}}",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "content",
+					"value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQChyggqbf+ghFXlKyx/XysH1FdRQCWdgXb4nbygIRszNG8LnmcfmlUZTge7o5AIc7vczvyX8asmtxuphWmxfMpBGx7hv021gprTDQU+NncnV9Jix5h7vuQlJZnwdDxTj5gnBIyES95vf8o6vsnWEAUco1BNBU6cjr0L7YFSXMfsKQZmAhtXE0qWmS+e3D5D80Ny6VUH0Rxf1PZc0kVJSzWNZYryfvIJRLAY7u6ldTGvAu0QDdu3b5sRnZ+kiB037173G2dmS8N70tlV7WXXFSSMioswVOsjoS3y7x7sWBGem/C7mjKrLBzZe0BP/yb3HxCeKf1wq68V2xsrL3iZKtDZ30jXxC5AJHGcqimqGTHOI9oAAT6E/QtkEEDHJ/8K6wGKnFd0Loat6hNSVJZ0ruZf9TrgcNEnqA35PZTPLRqaDC5jvNCf+2dk+tN0+dePs7OW5XeNUJQ46wS6rrnDY1AwAZ/vzb5JsIUmDZkz1UEktAWSlbW11xjDHZT4/rV4CSrY5Wc4aWeFpDGKcQVmUZQbry3WGgwCrR7q4jNNrT6Eh9s5tS7STqOPeD1gSYEBdl4vUmwtXNb55Ca3sPWBtbwE3lB+Cbd9S6TKDq5DPn1Fp1epR+5qc4rFj8aMuICRjVpUXqya4StHf5sWccjtDSJnvclbdbFi2PoCRmEJlw8hJw== salt_rsa",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "params",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"session status success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"session info contains token data\"] = \"token\" in data;\n    tests[\"session info contains context data\"] = \"session\" in data;\n    tests[\"session context contains session user\"] = data.session.username === environment.keydom_username;\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1445648654606,
+			"name": "http://maio.me:9468/session",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
+		},
+		{
+			"id": "6d3afebb-b466-ade8-5b51-92a68073cbc2",
+			"headers": "",
+			"url": "http://maio.me:9468/auth",
+			"preRequestScript": "if (environment.keydom_session !== null) {\n    postman.clearEnvironmentVariable(\"keydom_session\");\n}",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "username",
+					"value": "{{keydom_username}}",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "password",
+					"value": "{{keydom_password}}",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "urlencoded",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"auth success\"] = data.status === 200;\ntests[\"auth provides token\"] = \"token\" in data.auth; \n\npostman.setEnvironmentVariable(\"keydom_session\", data.auth.token);",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1445636311788,
+			"name": "http://maio.me:9468/auth",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
+		},
+		{
+			"id": "72aedd39-c40a-3528-fd1f-4bf1cd31a5f2",
+			"headers": "",
+			"url": "http://maio.me:9468/token/check",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "token",
+					"value": "{{keydom_session}}",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "urlencoded",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"token check success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"token check contains auth\"] = data.auth !== undefined && data.auth !== null;\n    tests[\"token check contains auth.username\"] = data.auth.username !== undefined && data.auth !== null;\n    tests[\"token check returns current username\"] = data.auth.username === environment.keydom_username;\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1445636350600,
+			"name": "http://maio.me:9468/token/check",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
+		},
+		{
+			"id": "cfcc5062-8f47-109f-c5bd-a9c8da5683a9",
+			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"url": "http://maio.me:9468/key",
+			"preRequestScript": "if (environment.keydom_key_name !== undefined) {\n    postman.clearEnvironmentVariable(\"keydom_key_name\");\n}\n\npostman.setEnvironmentVariable(\"keydom_key_name\", \"testing-\" + (new Date()).getTime());",
+			"pathVariables": {},
+			"method": "PUT",
+			"data": [
+				{
+					"key": "visibility",
+					"value": "self",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "short_name",
+					"value": "{{keydom_key_name}}",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "content",
+					"value": "{{keydom_ssh_key}}",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "params",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"key status success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"key resp contains key data\"] = \"key\" in data;\n    tests[\"key data visible to self\"] = data.key.visibility === \"self\";\n    tests[\"key data name matches local\"] = data.key.short_name === environment.keydom_key_name;\n    tests[\"key data contains fingerprint\"] = \"fingerprint\" in data.key;\n\n    postman.setEnvironmentVariable(\"keydom_key_fingerprint\", data.key.fingerprint);\n} else {\n    postman.clearEnvironmentVariable(\"keydom_key_fingerprint\");\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1445921297139,
+			"name": "http://maio.me:9468/key",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
+		},
+		{
+			"id": "ec95aa1c-011e-ddb1-a85c-bc858d7786ff",
+			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"url": "http://maio.me:9468/token/revoke",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [],
+			"dataMode": "params",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"revoke status success\"] = data.status === 200;\nif (data.status === 200) {\n    postman.clearEnvironmentVariable(\"keydom_session\");\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1445644857262,
+			"name": "http://maio.me:9468/token/revoke",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9",
+			"responses": []
+		},
+		{
+			"id": "f08f878e-5532-6cc7-3ef2-55e9b16faf54",
+			"headers": "",
+			"url": "http://maio.me:9468/register",
+			"preRequestScript": "postman.clearEnvironmentVariable(\"keydom_session\");\npostman.clearEnvironmentVariable(\"keydom_key_name\");",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "username",
+					"value": "{{keydom_username}}",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "password",
+					"value": "{{keydom_password}}",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "email",
+					"value": "{{keydom_email}}",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "urlencoded",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"register success\"] = data.status === 200;\ntests[\"register contains account\"] = \"account\" in data;\ntests[\"register returns success\"] = data.account.registered === true;\ntests[\"register username match\"] = data.account.username === environment.keydom_username;\ntests[\"register email match\"] = data.account.email === environment.keydom_email;\n",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1445920733680,
+			"name": "http://maio.me:9468/register",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
+		}
+	]
+}

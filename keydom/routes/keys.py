@@ -82,12 +82,78 @@ class KeysAPIRouter(routing.base.APIRouter):
             **key_data)
         new_key.save()
 
+        try:
+            new_key.fingerprint()
+        except TypeError as e:
+            resp = routing.base.generate_error_response(code = 409)
+            resp["message"] = "Invalid key content."
+            return json.dumps(resp) + "\n"
+
         resp = routing.base.generate_bare_response()
         resp["key"] = {
             "short_name": new_key.short_name,
-            "fingerprint": ssh_pubkey_fingerprint(new_key.content),
+            "fingerprint": new_key.fingerprint(),
             "visibility": new_key.visibility,
         }
+
+        return json.dumps(resp) + "\n"
+
+    @api_route(path = "/key/fingerprint", actions = ["GET"])
+    def key_get_fingerprint():
+        """ GET /key/fingerprint
+
+            Grabs a key and pulls the fingerprint. Finds the key based on
+            short name.
+
+            Accepts the following query parameters:
+                user: may be either self, <username>, or [all|any]
+                short_name: name of the key
+        """
+
+        token = token_by_header_data(request.headers.get("X-Keydom-Session"))
+
+        if not token:
+            resp = routing.base.generate_error_response(code = 401)
+            resp["message"] = "Invalid authentication token."
+            return json.dumps(resp) + "\n"
+
+        if token.has_expired:
+            resp = routing.base.generate_error_response(code = 403)
+            resp["message"] = "Authentication token has expired. Request another."
+            return json.dumps(resp) + "\n"
+
+        key_data = {
+            "short_name": request.query.short_name or None,
+            "user": request.query.user or token.for_user.username,
+        }
+
+        res = (Key
+               .select()
+               .where(Key.short_name == key_data["short_name"]))
+
+        resp = routing.base.generate_bare_response()
+        resp["fingerprints"] = []
+
+        if res.count() == 0:
+            return json.dumps(resp) + "\n"
+
+        if key_data["user"].lower() == "self":
+            keys = filter(
+                lambda key: key.belongs_to.username == token.for_user.username,
+                res)
+        elif key_data["user"].lower() in ["all", "any"]:
+            keys = res
+        else:
+            keys = filter(
+                lambda key: key.belongs_to.username == key_data["user"],
+                res)
+
+        for key in keys:
+            resp["fingerprints"].append({
+                "short_name": key.short_name,
+                "owner": key.belongs_to.username,
+                "fingerprint": key.fingerprint()
+            })
 
         return json.dumps(resp) + "\n"
 

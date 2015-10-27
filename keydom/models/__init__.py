@@ -95,5 +95,6 @@ def init_database_from_config(db_config):
                 tables.append(member_obj)
 
     LOG.debug("Ensuring tables are created (safe=True)")
-    database.create_tables(tables, safe = True)
+    try: database.create_tables(tables, safe = True)
+    except: pass
 

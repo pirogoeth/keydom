@@ -10,6 +10,7 @@ from keydom import models
 from keydom.models.user import Token, User
 
 
+@routing.routing_module
 class TokenAPIRouter(routing.base.APIRouter):
     """ Routing for token specific operations, such as
         revocation, validation, etc.
@@ -32,7 +33,7 @@ class TokenAPIRouter(routing.base.APIRouter):
         try: res = Token.get(Token.token == token)
         except:
             resp = routing.base.generate_error_response(code = 409)
-            resp["message"] = "Invalid token."
+            resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
         resp = routing.base.generate_bare_response()
@@ -78,7 +79,7 @@ class TokenAPIRouter(routing.base.APIRouter):
         return json.dumps(resp) + "\n"
 
     @api_route(path = "/token/revoke/all", actions = ["POST"])
-    def token_revoke():
+    def token_revoke_all():
         """ POST /token/revoke/all
 
             Expires ALL tokens for the user represented by the posted token.
@@ -118,5 +119,3 @@ class TokenAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-
-register_route_providers = [TokenAPIRouter]
