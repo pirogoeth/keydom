@@ -50,7 +50,7 @@
 			"currentHelper": "normal",
 			"helperAttributes": {},
 			"time": 1445962973456,
-			"name": "http://maio.me:9468/key/fingerprint",
+			"name": "keydom://key/fingerprint",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
@@ -68,7 +68,7 @@
 			"currentHelper": "normal",
 			"helperAttributes": {},
 			"time": 1445962956796,
-			"name": "http://maio.me:9468/session",
+			"name": "keydom://session",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
@@ -99,7 +99,7 @@
 			"currentHelper": "normal",
 			"helperAttributes": {},
 			"time": 1445962941545,
-			"name": "http://maio.me:9468/auth",
+			"name": "keydom://auth",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
@@ -124,7 +124,7 @@
 			"currentHelper": "normal",
 			"helperAttributes": {},
 			"time": 1445962949753,
-			"name": "http://maio.me:9468/token/check",
+			"name": "keydom://token/check",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
@@ -161,7 +161,7 @@
 			"currentHelper": "normal",
 			"helperAttributes": {},
 			"time": 1445962964750,
-			"name": "http://maio.me:9468/key",
+			"name": "keydom://key",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
@@ -179,7 +179,7 @@
 			"currentHelper": "normal",
 			"helperAttributes": {},
 			"time": 1445962983258,
-			"name": "http://maio.me:9468/token/revoke",
+			"name": "keydom://token/revoke",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9",
 			"responses": []
@@ -216,8 +216,8 @@
 			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"register success\"] = data.status === 200;\ntests[\"register contains account\"] = \"account\" in data;\ntests[\"register returns success\"] = data.account.registered === true;\ntests[\"register username match\"] = data.account.username === environment.keydom_username;\ntests[\"register email match\"] = data.account.email === environment.keydom_email;\n",
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1445962933381,
-			"name": "http://maio.me:9468/register",
+			"time": 1445969357931,
+			"name": "keydom://register",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		}

@@ -1,5 +1,6 @@
 image: python:2.7-wheezy
 script:
+  - apt-get update && apt-get install -y python-pysqlite2
   - virtualenv .
   - source bin/activate
   - mkdir src && pushd src
