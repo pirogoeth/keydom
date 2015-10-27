@@ -15,9 +15,3 @@ notify:
     on_started: true
     on_success: true
     on_failure: true
-  webhook:
-    urls:
-      - $$GITTER_URL
-    on_started: true
-    on_success: true
-    on_failure: true
