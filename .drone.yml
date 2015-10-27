@@ -13,6 +13,7 @@ script:
   - apt-get install -y nodejs
   - npm install -g newman
   - ./server.py --config=tests/test.ini &
+  - sleep 3
   - newman -x 1 -c tests/postman/keydom-tests.json -e tests/postman/env-test.json
   - kill -9 %1
 notify:
