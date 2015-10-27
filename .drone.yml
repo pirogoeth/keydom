@@ -6,7 +6,7 @@ script:
   - git clone https://phabricator.ramcloud.io/diffusion/RAT/rest-api-template.git
   - cd rest-api-template
   - pip install -r requirements.txt
-  - popd && rmdir src
+  - popd && rm -rf src
   - pip install -r requirements.txt
   - curl -sL https://deb.nodesource.com/setup_0.12 | bash -
   - apt-get install -y nodejs
