@@ -7,4 +7,4 @@ pip-selfcheck.json
 *.pyc
 api.ini
 keydom.ini
-.drone.unsec
+.drone.sec.yml
