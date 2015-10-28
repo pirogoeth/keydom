@@ -1,7 +1,7 @@
 keydom
 ======
 
-[![Build Status](https://ci.maio.me/api/badge/github.com/pirogoeth/keydom/status.svg?branch=master)](https://ci.maio.me/github.com/pirogoeth/keydom)
+[![Build Status](https://ci.maio.me/api/badges/pirogoeth/keydom/status.svg)](https://ci.maio.me/pirogoeth/keydom)
 
 Keydom is a project that is being written with the intent of storing public keys (SSH, GPG, etc).
 

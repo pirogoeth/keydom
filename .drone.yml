@@ -1,25 +1,29 @@
-image: python:2.7-wheezy
-script:
-  - apt-get update && apt-get install -y python-pysqlite2
-  - virtualenv .
-  - source bin/activate
-  - mkdir src && pushd src
-  - git clone https://phabricator.ramcloud.io/diffusion/RAT/rest-api-template.git
-  - cd rest-api-template
-  - pip install -r requirements.txt
-  - popd && rm -rf src
-  - pip install -r requirements.txt
-  - curl -sL https://deb.nodesource.com/setup_0.12 | bash -
-  - apt-get install -y nodejs
-  - npm install -g newman
-  - ./server.py --config=tests/test.ini &
-  - sleep 3
-  - newman -x 1 -c tests/postman/keydom-tests.json -e tests/postman/env-test.json
-  - kill -9 %1
+build:
+  image: python:2.7-wheezy
+  script:
+    - apt-get update && apt-get install -y python-pysqlite2
+    - virtualenv .
+    - . bin/activate
+    - mkdir src && pushd src
+    - git clone https://phabricator.ramcloud.io/diffusion/RAT/rest-api-template.git
+    - cd rest-api-template
+    - pip install -r requirements.txt
+    - popd && rm -rf src
+    - pip install -r requirements.txt
+    - curl -sL https://deb.nodesource.com/setup_0.12 | bash -
+    - apt-get install -y nodejs
+    - npm install -g newman
+    - ./server.py --config=tests/test.ini &
+    - sleep 3
+    - newman -x 1 -c tests/postman/keydom-tests.json -e tests/postman/env-test.json
+    - kill -9 %1
+
 notify:
   slack:
     webhook_url: $$SLACK_URL
     channel: $$SLACK_CHANNEL
-    on_started: true
-    on_success: true
-    on_failure: true
+    username: drone
+    when:
+      started: true
+      on_success: true
+      on_failure: true
