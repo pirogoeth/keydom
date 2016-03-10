@@ -9,21 +9,22 @@
 		"6a3bf740-dab9-d583-cc76-59718cceed1f",
 		"cfcc5062-8f47-109f-c5bd-a9c8da5683a9",
 		"336d00da-07d2-c878-f5b6-8f5a7845b316",
+		"cc01b499-10ab-4ec5-4409-738e7f57812c",
+		"d6566541-3a18-e7c2-7157-82bb6d882d35",
+		"83f35895-77ea-694f-b221-2790adaa91f3",
 		"ec95aa1c-011e-ddb1-a85c-bc858d7786ff"
 	],
 	"folders": [],
-	"timestamp": 1445616758085,
+	"timestamp": 0,
 	"owner": "191973",
 	"remoteLink": "",
 	"public": false,
 	"requests": [
 		{
+			"folder": null,
 			"id": "336d00da-07d2-c878-f5b6-8f5a7845b316",
-			"headers": "X-Keydom-Session: {{keydom_session}}\n",
-			"url": "http://{{keydom_endpoint}}/key/fingerprint?user=self&short_name={{keydom_key_name}}",
-			"preRequestScript": "",
-			"pathVariables": {},
-			"method": "GET",
+			"name": "keydom://key/fingerprint",
+			"dataMode": "params",
 			"data": [
 				{
 					"key": "visibility",
@@ -44,41 +45,43 @@
 					"enabled": true
 				}
 			],
-			"dataMode": "params",
-			"version": 2,
+			"rawModeData": null,
+			"descriptionFormat": null,
+			"description": "",
+			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"method": "GET",
+			"pathVariables": {},
+			"url": "http://{{keydom_endpoint}}/key/fingerprint?user=self&short_name={{keydom_key_name}}",
+			"preRequestScript": "",
 			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"key status success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"key data contains fingerprint\"] = \"fingerprints\" in data;\n    tests[\"key fingerprints has element\"] = 0 in data.fingerprints;\n    key_data = data.fingerprints[0];\n    tests[\"key resp contains key data\"] = \"fingerprint\" in key_data;\n    tests[\"key data owned by self\"] = key_data.owner === environment.keydom_username;\n    tests[\"key data name matches local\"] = key_data.short_name === environment.keydom_key_name;\n\n    postman.setEnvironmentVariable(\"keydom_key_fingerprint\", key_data.fingerprint);\n} else {\n    postman.clearEnvironmentVariable(\"keydom_key_fingerprint\");\n}",
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1445962973456,
-			"name": "keydom://key/fingerprint",
-			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
 		{
+			"folder": null,
 			"id": "6a3bf740-dab9-d583-cc76-59718cceed1f",
+			"name": "keydom://session",
+			"dataMode": "params",
+			"data": [],
+			"rawModeData": null,
+			"descriptionFormat": null,
+			"description": "",
 			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"method": "GET",
+			"pathVariables": {},
 			"url": "http://{{keydom_endpoint}}/session",
 			"preRequestScript": "",
-			"pathVariables": {},
-			"method": "GET",
-			"data": [],
-			"dataMode": "params",
-			"version": 2,
 			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"session status success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"session info contains token data\"] = \"token\" in data;\n    tests[\"session info contains context data\"] = \"session\" in data;\n    tests[\"session context contains session user\"] = data.session.username === environment.keydom_username;\n}",
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1445962956796,
-			"name": "keydom://session",
-			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
 		{
+			"folder": null,
 			"id": "6d3afebb-b466-ade8-5b51-92a68073cbc2",
-			"headers": "",
-			"url": "http://{{keydom_endpoint}}/auth",
-			"preRequestScript": "if (environment.keydom_session !== null) {\n    postman.clearEnvironmentVariable(\"keydom_session\");\n}",
-			"pathVariables": {},
-			"method": "POST",
+			"name": "keydom://auth",
+			"dataMode": "urlencoded",
 			"data": [
 				{
 					"key": "username",
@@ -93,14 +96,17 @@
 					"enabled": true
 				}
 			],
-			"dataMode": "urlencoded",
-			"version": 2,
+			"rawModeData": null,
+			"descriptionFormat": null,
+			"description": "",
+			"headers": "",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://{{keydom_endpoint}}/auth",
+			"preRequestScript": "if (environment.keydom_session !== null) {\n    postman.clearEnvironmentVariable(\"keydom_session\");\n}",
 			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"auth success\"] = data.status === 200;\ntests[\"auth provides token\"] = \"token\" in data.auth; \n\npostman.setEnvironmentVariable(\"keydom_session\", data.auth.token);",
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1445962941545,
-			"name": "keydom://auth",
-			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
 		{
@@ -120,21 +126,21 @@
 			],
 			"dataMode": "urlencoded",
 			"version": 2,
-			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"token check success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"token check contains auth\"] = data.auth !== undefined && data.auth !== null;\n    tests[\"token check contains auth.username\"] = data.auth.username !== undefined && data.auth !== null;\n    tests[\"token check returns current username\"] = data.auth.username === environment.keydom_username;\n}",
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"token check success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"token check contains auth\"] = data.auth !== undefined && data.auth !== null;\n\n    var authInfo = data.auth || {};\n    tests[\"token check contains auth.username\"] = authInfo.username !== undefined && authInfo !== null;\n    tests[\"token check returns current username\"] = authInfo.username === environment.keydom_username;\n}",
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1445962949753,
+			"time": 1457562685106,
 			"name": "keydom://token/check",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
 		{
-			"id": "cfcc5062-8f47-109f-c5bd-a9c8da5683a9",
+			"id": "83f35895-77ea-694f-b221-2790adaa91f3",
 			"headers": "X-Keydom-Session: {{keydom_session}}\n",
-			"url": "http://{{keydom_endpoint}}/key",
-			"preRequestScript": "if (environment.keydom_key_name !== undefined) {\n    postman.clearEnvironmentVariable(\"keydom_key_name\");\n}\n\npostman.setEnvironmentVariable(\"keydom_key_name\", \"testing-\" + (new Date()).getTime());",
+			"url": "http://{{keydom_endpoint}}/keys",
+			"preRequestScript": "",
 			"pathVariables": {},
-			"method": "PUT",
+			"method": "GET",
 			"data": [
 				{
 					"key": "visibility",
@@ -157,32 +163,147 @@
 			],
 			"dataMode": "params",
 			"version": 2,
-			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"key status success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"key resp contains key data\"] = \"key\" in data;\n    tests[\"key data visible to self\"] = data.key.visibility === \"self\";\n    tests[\"key data name matches local\"] = data.key.short_name === environment.keydom_key_name;\n    tests[\"key data contains fingerprint\"] = \"fingerprint\" in data.key;\n\n    postman.setEnvironmentVariable(\"keydom_key_fingerprint\", data.key.fingerprint);\n} else {\n    postman.clearEnvironmentVariable(\"keydom_key_fingerprint\");\n}",
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"user keys | info success\"] = data.status === 200;\nif (data.status === 200) {\n    // key list schema\n    tests[\"user keys | info contains keys list\"] = \"keys\" in data;\n    tests[\"user keys | info contains owner tag\"] = \"user\" in data;\n    \n    var ownerTag = data.user;\n    // owner tag schema\n    tests[\"owner tag | contains username\"] = \"username\" in ownerTag;\n    \n    // owner tag content\n    tests[\"owner tag | username matches\"] = ownerTag.username === environment.keydom_username;\n    \n    // key list content\n    tests[\"user keys | list contains one key\"] = data.keys.length === 1;\n    \n    var keyObj = data.keys[0];\n    \n    // key description schema\n    tests[\"key dict | contains publish date\"] = \"published\" in keyObj;\n    tests[\"key dict | contains key content\"] = \"key\" in keyObj;\n    tests[\"key dict | contains short name\"] = \"short_name\" in keyObj;\n    tests[\"key dict | contains key fingerprint\"] = \"fingerprint\" in keyObj;\n    \n    // key description content\n    tests[\"key dict | key content matches\"] = keyObj.key === environment.keydom_ssh_key;\n    tests[\"key dict | key fingerprint matches\"] = keyObj.fingerprint === environment.keydom_key_fingerprint;\n    tests[\"key dict | key short name matches\"] = keyObj.short_name === environment.keydom_key_name;\n}",
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1445962964750,
-			"name": "keydom://key",
-			"description": "",
-			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
-		},
-		{
-			"id": "ec95aa1c-011e-ddb1-a85c-bc858d7786ff",
-			"headers": "X-Keydom-Session: {{keydom_session}}\n",
-			"url": "http://{{keydom_endpoint}}/token/revoke",
-			"preRequestScript": "",
-			"pathVariables": {},
-			"method": "POST",
-			"data": [],
-			"dataMode": "params",
-			"version": 2,
-			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"revoke status success\"] = data.status === 200;\nif (data.status === 200) {\n    postman.clearEnvironmentVariable(\"keydom_session\");\n}",
-			"currentHelper": "normal",
-			"helperAttributes": {},
-			"time": 1445962983258,
-			"name": "keydom://token/revoke",
+			"time": 1457581129744,
+			"name": "keydom://keys",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9",
 			"responses": []
+		},
+		{
+			"id": "cc01b499-10ab-4ec5-4409-738e7f57812c",
+			"headers": "",
+			"url": "http://{{keydom_endpoint}}/user/{{keydom_username}}",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "GET",
+			"data": [
+				{
+					"key": "visibility",
+					"value": "self",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "short_name",
+					"value": "{{keydom_key_name}}",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "content",
+					"value": "{{keydom_ssh_key}}",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "params",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"tokenless user info success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"tokenless user info returns user data\"] = \"user\" in data;\n    var userData = data.user;\n\n    tests[\"user data contains username\"] = \"username\" in userData;\n    tests[\"user data refers to current user\"] = userData.username === environment.keydom_username;\n    tests[\"user data contains join date\"] = \"join_date\" in userData;\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1457579180282,
+			"name": "keydom://user/:username (tokenless)",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9",
+			"responses": []
+		},
+		{
+			"folder": null,
+			"id": "cfcc5062-8f47-109f-c5bd-a9c8da5683a9",
+			"name": "keydom://key",
+			"dataMode": "params",
+			"data": [
+				{
+					"key": "visibility",
+					"value": "self",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "short_name",
+					"value": "{{keydom_key_name}}",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "content",
+					"value": "{{keydom_ssh_key}}",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"rawModeData": null,
+			"descriptionFormat": null,
+			"description": "",
+			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"method": "PUT",
+			"pathVariables": {},
+			"url": "http://{{keydom_endpoint}}/key",
+			"preRequestScript": "if (environment.keydom_key_name !== undefined) {\n    postman.clearEnvironmentVariable(\"keydom_key_name\");\n}\n\npostman.setEnvironmentVariable(\"keydom_key_name\", \"testing-\" + (new Date()).getTime());",
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"key status success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"key resp contains key data\"] = \"key\" in data;\n    tests[\"key data visible to self\"] = data.key.visibility === \"self\";\n    tests[\"key data name matches local\"] = data.key.short_name === environment.keydom_key_name;\n    tests[\"key data contains fingerprint\"] = \"fingerprint\" in data.key;\n\n    postman.setEnvironmentVariable(\"keydom_key_fingerprint\", data.key.fingerprint);\n} else {\n    postman.clearEnvironmentVariable(\"keydom_key_fingerprint\");\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
+		},
+		{
+			"id": "d6566541-3a18-e7c2-7157-82bb6d882d35",
+			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"url": "http://{{keydom_endpoint}}/user/{{keydom_username}}",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "GET",
+			"data": [
+				{
+					"key": "visibility",
+					"value": "self",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "short_name",
+					"value": "{{keydom_key_name}}",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "content",
+					"value": "{{keydom_ssh_key}}",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "params",
+			"version": 2,
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"tokenless user info success\"] = data.status === 200;\nif (data.status === 200) {\n    tests[\"tokenless user info returns user data\"] = \"user\" in data;\n    var userData = data.user;\n\n    tests[\"user data contains username\"] = \"username\" in userData;\n    tests[\"user data refers to current user\"] = userData.username === environment.keydom_username;\n    tests[\"user data contains join date\"] = \"join_date\" in userData;\n    tests[\"user data contains user email\"] = \"email\" in userData;\n    tests[\"user data email matches current\"] = userData.email === environment.keydom_email;\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1457579398488,
+			"name": "keydom://user/:username",
+			"description": "",
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9",
+			"responses": []
+		},
+		{
+			"folder": null,
+			"id": "ec95aa1c-011e-ddb1-a85c-bc858d7786ff",
+			"name": "keydom://token/revoke",
+			"dataMode": "params",
+			"data": [],
+			"rawModeData": null,
+			"descriptionFormat": null,
+			"description": "",
+			"headers": "X-Keydom-Session: {{keydom_session}}\n",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://{{keydom_endpoint}}/token/revoke",
+			"preRequestScript": "",
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"revoke status success\"] = data.status === 200;\nif (data.status === 200) {\n    postman.clearEnvironmentVariable(\"keydom_session\");\n}",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"
 		},
 		{
 			"id": "f08f878e-5532-6cc7-3ef2-55e9b16faf54",
@@ -213,10 +334,10 @@
 			],
 			"dataMode": "urlencoded",
 			"version": 2,
-			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"register success\"] = data.status === 200;\ntests[\"register contains account\"] = \"account\" in data;\ntests[\"register returns success\"] = data.account.registered === true;\ntests[\"register username match\"] = data.account.username === environment.keydom_username;\ntests[\"register email match\"] = data.account.email === environment.keydom_email;\n",
+			"tests": "var data = JSON.parse(responseBody);\n\ntests[\"request returns data\"] = data !== null;\ntests[\"register success\"] = data.status == 200;\ntests[\"register contains account\"] = \"account\" in data;\n\nvar accountInfo = data.account || {};\ntests[\"register returns success\"] = accountInfo.registered === true;\ntests[\"register username match\"] = accountInfo.username === environment.keydom_username;\ntests[\"register email match\"] = accountInfo.email === environment.keydom_email;",
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1445969357931,
+			"time": 1457562563834,
 			"name": "keydom://register",
 			"description": "",
 			"collectionId": "f88abb35-3326-91d5-f598-3f6e98d5faf9"

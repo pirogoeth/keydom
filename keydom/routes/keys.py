@@ -1,14 +1,14 @@
-import bottle, json, malibu
+import json
 
-from bottle import request, response
+from bottle import request
 from malibu.util import log
 from malibu.util.names import get_simple_name
-from rest_api import manager, routing
+from rest_api import routing
 from rest_api.routing.base import api_route
 
-from keydom import models
 from keydom.models.key import Key
-from keydom.util import ssh_pubkey_fingerprint, token_by_header_data
+from keydom.models.user import User
+from keydom.util import token_by_header_data
 
 
 @routing.routing_module
@@ -22,7 +22,9 @@ class KeysAPIRouter(routing.base.APIRouter):
 
         self.__log = log.LoggingDriver.find_logger()
 
-    @api_route(path = "/key", actions = ["PUT"])
+    @api_route(path="/key",
+               actions=["PUT"],
+               returns="application/json")
     def key_put():
         """ PUT /key
 
@@ -39,12 +41,12 @@ class KeysAPIRouter(routing.base.APIRouter):
         token = token_by_header_data(request.headers.get("X-Keydom-Session"))
 
         if not token:
-            resp = routing.base.generate_error_response(code = 401)
+            resp = routing.base.generate_error_response(code=401)
             resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
         if token.has_expired:
-            resp = routing.base.generate_error_response(code = 403)
+            resp = routing.base.generate_error_response(code=403)
             resp["message"] = "Authentication token has expired. Request another."
             return json.dumps(resp) + "\n"
 
@@ -56,7 +58,7 @@ class KeysAPIRouter(routing.base.APIRouter):
         }
 
         if not key_data["content"]:
-            resp = routing.base.generate_error_response(code = 400)
+            resp = routing.base.generate_error_response(code=400)
             resp["message"] = "Missing PUT request data: 'content'"
             return json.dumps(resp) + "\n"
 
@@ -73,19 +75,19 @@ class KeysAPIRouter(routing.base.APIRouter):
                       Key.belongs_to == user))
 
         if res.count() > 0:
-            resp = routing.base.generate_error_response(code = 409)
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Key already exists for this user."
             return json.dumps(resp) + "\n"
 
         new_key = Key.create(
-            belongs_to = user,
+            belongs_to=user,
             **key_data)
         new_key.save()
 
         try:
             new_key.fingerprint()
-        except TypeError as e:
-            resp = routing.base.generate_error_response(code = 409)
+        except TypeError:
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Invalid key content."
             return json.dumps(resp) + "\n"
 
@@ -98,7 +100,9 @@ class KeysAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/key/fingerprint", actions = ["GET"])
+    @api_route(path="/key/fingerprint",
+               actions=["GET"],
+               returns="application/json")
     def key_get_fingerprint():
         """ GET /key/fingerprint
 
@@ -113,12 +117,12 @@ class KeysAPIRouter(routing.base.APIRouter):
         token = token_by_header_data(request.headers.get("X-Keydom-Session"))
 
         if not token:
-            resp = routing.base.generate_error_response(code = 401)
+            resp = routing.base.generate_error_response(code=401)
             resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
         if token.has_expired:
-            resp = routing.base.generate_error_response(code = 403)
+            resp = routing.base.generate_error_response(code=403)
             resp["message"] = "Authentication token has expired. Request another."
             return json.dumps(resp) + "\n"
 
@@ -157,3 +161,92 @@ class KeysAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
+    @api_route(path="/keys",
+               actions=["GET"],
+               returns="application/json")
+    def key_get_keys():
+        """ GET /keys
+
+            Returns the keys for the currently logged in user.
+        """
+
+        token = token_by_header_data(request.headers.get("X-Keydom-Session"))
+
+        if not token:
+            resp = routing.base.generate_error_response(code=401)
+            resp["message"] = "Invalid authentication token."
+            return json.dumps(resp) + "\n"
+
+        if token.has_expired:
+            resp = routing.base.generate_error_response(code=403)
+            resp["message"] = "Authentication token has expired. Request another."
+            return json.dumps(resp) + "\n"
+
+        user = token.for_user
+        user_keys = user.scoped_keys(scope=Key.VIS_SELF)
+
+        resp = routing.base.generate_bare_response()
+        resp["keys"] = []
+        resp["user"] = {
+            "username": user.username,
+        }
+
+        for key in user_keys:
+            resp["keys"].append({
+                "short_name": key.short_name,
+                "key": key.content,
+                "fingerprint": key.fingerprint(),
+                "published": str(key.published_at),
+            })
+
+        return json.dumps(resp) + "\n"
+
+    @api_route(path="/keys/<username>",
+               actions=["GET"],
+               returns="application/json")
+    def key_get_user_keys(username):
+        """ GET /keys/<username>
+
+            Returns the keys for the specified username based on the
+            requesting user's scope.
+        """
+
+        token = token_by_header_data(request.headers.get("X-Keydom-Session"))
+
+        if not token:
+            req_user = None
+        else:
+            req_user = token.for_user
+
+        if token is not None and token.has_expired:
+            resp = routing.base.generate_error_response(code=403)
+            resp["message"] = "Authentication token has expired. Request another."
+            return json.dumps(resp) + "\n"
+
+        user = User.get(username=username)
+        scope = Key.VIS_PUB  # Default to lowest permission scope.
+        if token and user.is_friends(req_user):
+            scope = Key.VIS_PRIV
+        elif user == req_user:
+            scope = Key.VIS_SELF
+        else:
+            scope = Key.VIS_PUB
+
+        user_keys = user.scoped_keys(scope)
+
+        resp = routing.base.generate_base_response()
+        resp["keys"] = []
+        resp["owner"] = {
+            "username": user.username,
+            "scope": scope,
+        }
+
+        for key in user_keys:
+            resp["keys"].append({
+                "short_name": key.short_name,
+                "key": key.content,
+                "fingerprint": key.fingerprint(),
+                "published": str(key.published_at),
+            })
+
+        return json.dumps(resp) + "\n"

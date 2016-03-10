@@ -1,13 +1,13 @@
 #!/usr/bin/env python2.7
 
-from bottle import hook
 from datetime import datetime
-from rest_api import routing, manager, util
+from rest_api import routing
 from rest_api.manager import RESTAPIManager
 from malibu.util import log, scheduler
 
 from keydom import migrations
 from keydom import models
+
 
 if __name__ == "__main__":
 
@@ -18,11 +18,11 @@ if __name__ == "__main__":
 
     manager.load_logging()
     log.LoggingDriver.from_config(manager.config.get_section("logging"),
-        name = "keydom")
-    logger = log.LoggingDriver.find_logger(name = "keydom.__main__")
+                                  name="keydom")
+    logger = log.LoggingDriver.find_logger(name="keydom.__main__")
     models.init_database_from_config(manager.config.get_section("database"))
     manager.load_bottle()
-    routing.load_routing_modules(manager, package = "keydom.routes")
+    routing.load_routing_modules(manager, package="keydom.routes")
     manager.load_dsn()
 
     if "migrate" in manager.arg_parser.options:
@@ -41,8 +41,8 @@ if __name__ == "__main__":
                     "downgrade",
                     migration_idx)
             else:
-                log.error("Invalid migration action! Only upgrade or downgrade "
-                          "are allowed.")
+                log.error("Invalid migration action! Only upgrade or downgrade"
+                          " are allowed.")
                 exit(1)
             exit(0)
         else:
@@ -51,8 +51,8 @@ if __name__ == "__main__":
             elif mig_do == "downgrade":
                 migrations.migrate_downgrades(models.database_migrator)
             else:
-                log.error("Invalid migration action! Only upgrade or downgrade "
-                          "are allowed.")
+                log.error("Invalid migration action! Only upgrade or downgrade"
+                          " are allowed.")
                 exit(1)
             exit(0)
 
@@ -78,11 +78,9 @@ if __name__ == "__main__":
         query = (user.Token
                  .delete()
                  .where(user.Token.expire_time <= datetime.now()))
-        purge_count = query.execute()
-
+        query.execute()
 
     try:
         manager.run_bottle()
     except:
         manager.dsn.client.captureException()
-

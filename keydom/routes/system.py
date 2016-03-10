@@ -1,12 +1,10 @@
-import bottle, datetime, hashlib, json, malibu
+import json
 
-from bottle import request, response
+from bottle import request
 from malibu.util import log, scheduler
-from rest_api import manager, routing
+from rest_api import routing
 from rest_api.routing.base import api_route
 
-from keydom import models
-from keydom.models.user import Token, User
 from keydom.util import token_by_header_data
 
 
@@ -19,7 +17,11 @@ class SystemAPIRouter(routing.base.APIRouter):
 
         routing.base.APIRouter.__init__(self, manager)
 
-    @api_route(path = "/_health", actions = ["GET"])
+        self.__log = log.LoggingDriver.find_logger()
+
+    @api_route(path="/_health",
+               actions=["GET"],
+               returns="application/json")
     def health():
         """ GET /_health
 
@@ -29,13 +31,15 @@ class SystemAPIRouter(routing.base.APIRouter):
         resp = routing.base.generate_bare_response()
         resp["health"] = "okay"
         resp["scheduler"] = {
-            "jobs": len(scheduler.Scheduler(state = "default")
+            "jobs": len(scheduler.Scheduler(state="default")
                         .job_store.get_jobs())
         }
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/_scheduler/jobs", actions = ["GET"])
+    @api_route(path="/_scheduler/jobs",
+               actions=["GET"],
+               returns="application/json")
     def scheduler_jobs():
         """ GET /_scheduler/jobs
 
@@ -49,11 +53,11 @@ class SystemAPIRouter(routing.base.APIRouter):
         token = token_by_header_data(auth_token)
 
         if not token:
-            resp = routing.base.generate_error_response(code = 409)
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
-        sch = scheduler.Scheduler(state = "default")
+        sch = scheduler.Scheduler(state="default")
         jobs = sch.job_store.get_jobs()
 
         resp = routing.base.generate_bare_response()

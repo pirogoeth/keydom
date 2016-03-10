@@ -1,15 +1,17 @@
-import bottle, hashlib, json, malibu
+import hashlib
+import json
 
-from bottle import request, response
+from bottle import request
 from malibu.util import log
 from rest_api import manager, routing
 from rest_api.routing.base import api_route
 from validate_email import validate_email
 
-from keydom import models
 from keydom.models.user import Token, User
+from keydom.util import token_by_header_data
 
 
+@routing.routing_module
 class UserAPIRouter(routing.base.APIRouter):
     """ Routes for user specific actions, such as registration,
         authentication, etc.
@@ -21,7 +23,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         self.__log = log.LoggingDriver.find_logger()
 
-    @api_route(path = "/users", actions = ["GET"])
+    @api_route(path="/users",
+               actions=["GET"],
+               returns="application/json")
     def user_list():
         """ GET /users
 
@@ -38,7 +42,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         yield json.dumps(resp) + "\n"
 
-    @api_route(path = "/register", actions = ["POST"])
+    @api_route(path="/register",
+               actions=["POST"],
+               returns="application/json")
     def user_register():
         """ POST /register
 
@@ -56,21 +62,21 @@ class UserAPIRouter(routing.base.APIRouter):
                .where((User.username == username) | (User.email == email)))
 
         if res.count() > 0:
-            resp = routing.base.generate_error_response(code = 409)
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Username taken."
             return json.dumps(resp) + "\n"
 
         if not validate_email(email):
-            resp = routing.base.generate_error_response(code = 409)
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Invalid email address."
             return json.dumps(resp) + "\n"
 
         password = hashlib.sha512(password).hexdigest()
 
         new_user = User.create(
-            username = username,
-            password = password,
-            email = email)
+            username=username,
+            password=password,
+            email=email)
         new_user.save()
 
         resp = routing.base.generate_bare_response()
@@ -82,14 +88,16 @@ class UserAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/auth", actions = ["POST"])
+    @api_route(path="/auth",
+               actions=["POST"],
+               returns="application/json")
     def user_auth():
         """ POST /auth
 
             Takes a user's username and password and attempts to auth
-            against the database. If there is a match, it will return `status: 200`
-            and an auth token to use for future operations. Note that the auth
-            token expires after a set amount of time.
+            against the database. If there is a match, it will return
+            `status: 200` and an auth token to use for future operations.
+            Note that the auth token expires after a set amount of time.
         """
 
         config = manager.RESTAPIManager.get_instance().config.get_section("auth-tokens")
@@ -97,9 +105,10 @@ class UserAPIRouter(routing.base.APIRouter):
         username = request.forms.get("username")
         password = hashlib.sha512(request.forms.get("password")).hexdigest()
 
-        try: res = User.get(User.username == username, User.password == password)
-        except Exception as e:
-            resp = routing.base.generate_error_response(code = 409)
+        try:
+            res = User.get(User.username == username, User.password == password)
+        except Exception:
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Invalid username or password."
             return json.dumps(resp) + "\n"
 
@@ -114,7 +123,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/session", actions = ["GET"])
+    @api_route(path="/session",
+               actions=["GET"],
+               returns="application/json")
     def user_session():
         """ GET /session
 
@@ -122,26 +133,28 @@ class UserAPIRouter(routing.base.APIRouter):
               X-Keydom-Session => current session token
 
             Reads the X-Keydom-Session header and checks if the token is valid.
-            If it is, the API returns the username that the token is associated with.
+            If it is, the API returns the username that the token is
+            associated with.
         """
 
         auth_token = request.headers.get("X-Keydom-Session")
 
         if not auth_token:
-            resp = routing.base.generate_error_response(code = 409)
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
-        try: token = Token.get(Token.token == auth_token)
-        except Exception as e:
-            resp = routing.base.generate_error_response(code = 409)
+        try:
+            token = Token.get(Token.token == auth_token)
+        except Exception:
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
         user = token.for_user
 
         if token.has_expired:
-            resp = routing.base.generate_error_response(code = 403)
+            resp = routing.base.generate_error_response(code=403)
             resp["message"] = "Authentication token has expired. Request another."
             return json.dumps(resp) + "\n"
 
@@ -156,7 +169,9 @@ class UserAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/user/<username>", actions = ['GET'])
+    @api_route(path="/user/<username>",
+               actions=['GET'],
+               returns="application/json")
     def user_info(username):
         """ GET /user/:username
 
@@ -167,21 +182,17 @@ class UserAPIRouter(routing.base.APIRouter):
             only be returned if a valid session token is provided.
         """
 
-        auth_token = request.headers.get("X-Keydom-Session")
+        token = token_by_header_data(request.headers.get("X-Keydom-Session"))
 
-        if auth_token:
-            try: token = Token.get(Token.token == auth_token)
-            except Exception as e:
-                token = None
+        if token is not None and token.has_expired:
+            token = None
 
-        try: user = User.get(User.username == username)
-        except Exception as e:
-            resp = routing.base.generate_error_response(code = 404)
+        try:
+            user = User.get(User.username == username)
+        except Exception:
+            resp = routing.base.generate_error_response(code=404)
             resp["message"] = "Invalid username."
             return json.dumps(resp) + "\n"
-
-        if token.has_expired:
-            token = None
 
         resp = routing.base.generate_bare_response()
         resp["user"] = {
@@ -197,31 +208,35 @@ class UserAPIRouter(routing.base.APIRouter):
 
         return json.dumps(resp) + "\n"
 
-    @api_route(path = "/tokens", actions = ['GET'])
+    @api_route(path="/tokens",
+               actions=['GET'],
+               returns="application/json")
     def user_tokens():
         """ GET /tokens
 
             Headers:
               X-Keydom-Session => current session token
 
-            Returns the list of tokens that are active for the user associated with the current token.
+            Returns the list of tokens that are active for the user
+            associated with the current token.
         """
 
         auth_token = request.headers.get("X-Keydom-Session")
 
         if not auth_token:
-            resp = routing.base.generate_error_response(code = 409)
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
-        try: token = Token.get(Token.token == auth_token)
-        except Exception as e:
-            resp = routing.base.generate_error_response(code = 409)
+        try:
+            token = Token.get(Token.token == auth_token)
+        except Exception:
+            resp = routing.base.generate_error_response(code=409)
             resp["message"] = "Invalid authentication token."
             return json.dumps(resp) + "\n"
 
         if token.has_expired:
-            resp = routing.base.generate_error_response(code = 403)
+            resp = routing.base.generate_error_response(code=403)
             resp["message"] = "Authentication token has expired. Request another."
             return json.dumps(resp) + "\n"
 
@@ -242,6 +257,3 @@ class UserAPIRouter(routing.base.APIRouter):
             })
 
         return json.dumps(resp) + "\n"
-
-
-register_route_providers = [UserAPIRouter]

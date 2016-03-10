@@ -1,24 +1,31 @@
-import datetime, peewee
+import datetime
+import peewee
+
 from keydom.models import BaseModel
 from keydom.models import user
 from keydom.util import ssh_pubkey_fingerprint
 
+
 class Key(BaseModel):
+
+    VIS_SELF = 'self'
+    VIS_PRIV = 'private'
+    VIS_PUB = 'public'
 
     belongs_to = peewee.ForeignKeyField(user.User)
     content = peewee.CharField()
-    published_at = peewee.DateTimeField(default = datetime.datetime.now)
+    published_at = peewee.DateTimeField(default=datetime.datetime.now)
     short_name = peewee.CharField(
-        index = True,
-        unique = False,
-        null = False)
+        index=True,
+        unique=False,
+        null=False)
     visibility = peewee.CharField(
-        default = "self",
-        null = False,
-        choices = [
-            ('self', 'self',),
-            ('private', 'private',),
-            ('public', 'public',)
+        default="self",
+        null=False,
+        choices=[
+            (VIS_SELF, 'self',),
+            (VIS_PRIV, 'private',),
+            (VIS_PUB, 'public',)
         ])
 
     class Meta:
@@ -44,4 +51,3 @@ class Key(BaseModel):
         else:
             # Wat.
             return None
-

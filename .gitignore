@@ -3,6 +3,7 @@ include
 lib
 var
 src
+man
 pip-selfcheck.json
 *.pyc
 api.ini

@@ -45,6 +45,42 @@ class User(BaseModel):
                 .select()
                 .where(Token.for_user == self))
 
+    def keys(self):
+        """ Returns all keys that belong to this user.
+        """
+
+        from keydom.models import key  # Import `key` here to prevent cycdep
+
+        return (key.Key
+                .select()
+                .where(key.Key.belongs_to == self))
+
+    def scoped_keys(self, scope="public"):
+        """ Returns user keys which are visible from a given scope.
+            The "public" scope can only see public visibility keys.
+            The "private" scope can see both public and private vis keys.
+            The "self" scope is only applied to the user's own profile and
+              allows the user to see all "public", "private", and "self" keys.
+        """
+
+        if scope not in ["public", "private", "self"]:
+            raise ValueError("scope must be one of: public, private, self")
+
+        keys = []
+
+        if scope is "public":
+            keys = filter(
+                self.keys(),
+                lambda k: k.visibility in ["public"])
+        elif scope is "private":
+            keys = filter(
+                self.keys(),
+                lambda k: k.visibility in ["public", "private"])
+        elif scope is "self":
+            keys = self.keys()
+
+        return keys
+
     def following(self):
         """ Returns all users this user is following.
         """
@@ -62,6 +98,14 @@ class User(BaseModel):
                 .select()
                 .join(UserRelationship, on = UserRelationship.from_user)
                 .where(UserRelationship.to_user == self))
+
+    def is_friend(self, user):
+        """ Returns a boolean if the following statements are true:
+             - :user: is in following
+             - :user: is in followers
+        """
+
+        return user in self.following() and user in self.followers()
 
 
 class UserRelationship(BaseModel):

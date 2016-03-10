@@ -4,7 +4,7 @@
 	"values": [
 		{
 			"key": "keydom_username",
-			"value": "keytesting",
+			"value": "key_test",
 			"type": "text",
 			"name": "keydom_username",
 			"enabled": true
@@ -18,7 +18,7 @@
 		},
 		{
 			"key": "keydom_email",
-			"value": "keytesting@maio.me",
+			"value": "key_test@maio.me",
 			"type": "text",
 			"name": "keydom_email",
 			"enabled": true
@@ -36,9 +36,24 @@
 			"type": "text",
 			"name": "keydom_endpoint",
 			"enabled": true
+		},
+		{
+			"key": "keydom_key_fingerprint",
+			"type": "text",
+			"value": "63:da:aa:23:b6:e9:0c:c3:2e:a0:1c:81:22:6d:75:fd"
+		},
+		{
+			"key": "keydom_session",
+			"type": "text",
+			"value": "813fb479d61212e708678a02675b4b4ffe193d24d73fd746c31848562721ce9e"
+		},
+		{
+			"key": "keydom_key_name",
+			"type": "text",
+			"value": "testing-1457581227365"
 		}
 	],
-	"timestamp": 1445972129294,
+	"timestamp": 1457581228670,
 	"synced": false,
 	"syncedFilename": ""
 }
