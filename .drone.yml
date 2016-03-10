@@ -10,10 +10,10 @@ build:
     - pip install -r requirements.txt
     - cd ../.. && rm -rf src
     - pip install -r requirements.txt
-    - curl -sL https://deb.nodesource.com/setup_0.12 | bash -
+    - curl -sL https://deb.nodesource.com/setup_4.x | bash -
     - apt-get install -y nodejs
     - npm install -g newman
-    - ./server.py --config=tests/test.ini &
+    - ./server.py --config tests/test.ini &
     - svr_pid=$!
     - sleep 3
     - newman -x 1 -c tests/postman/keydom-tests.json -e tests/postman/env-test.json
