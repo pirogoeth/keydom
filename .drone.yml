@@ -5,7 +5,7 @@ build:
     - virtualenv .
     - . bin/activate
     - mkdir src && cd src
-    - git clone https://phabricator.ramcloud.io/diffusion/RAT/rest-api-template.git
+    - git clone https://glow.dev.ramcloud.io/sjohnson/rest-api-template.git
     - cd rest-api-template
     - pip install -r requirements.txt
     - cd ../.. && rm -rf src
