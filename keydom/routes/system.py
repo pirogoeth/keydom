@@ -61,17 +61,17 @@ class SystemAPIRouter(routing.base.APIRouter):
         jobs = sch.job_store.get_jobs()
 
         resp = routing.base.generate_bare_response()
-        resp["jobs"] = {}
+        resp["jobs"] = []
 
         for job in jobs:
-            resp["jobs"].update({
-                job.get_name(): {
-                    "function_handle": str(job._function),
-                    "delta": str(job._delta),
-                    "recurring": job.is_recurring(),
-                    "metadata": job.metadata,
-                    "eta": str(job.get_eta()),
-                    "num_onfail": len(job._onfail),
-                }})
+            resp["jobs"].append({
+                "name": job.get_name(),
+                "function_handle": str(job._function),
+                "delta": str(job._delta),
+                "recurring": job.is_recurring(),
+                "metadata": job.metadata,
+                "eta": str(job.get_eta()),
+                "num_onfail": len(job._onfail),
+            })
 
         return json.dumps(resp) + "\n"
